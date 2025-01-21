@@ -22,7 +22,7 @@ def store_data(df: pd.DataFrame, table_name: str = "prices"):
     print(f"Storing data into {table_name}...")
     engine = create_engine(constants.DATABASE_URL)
     with engine.connect() as connection:
-        df.to_sql(table_name, connection, if_exists='append', index=False)
+        df.to_sql(table_name, connection, if_exists='replace', index=False)
     print("Data stored successfully.")
 
 # Main pipeline function
@@ -31,20 +31,19 @@ def stock_data_pipeline(tickers: list, start_date: str, end_date: str):
     Pipeline to fetch, transform, and store stock data for a list of tickers.
     """
     # Step 1: Fetch data
-    data = fetch_stock_prices(tickers, start_date, end_date)
-    print(data)
-    print(data.columns)
+    df = fetch_stock_prices(tickers, start_date, end_date)
+    print('Retrieved data:')
+    print(df)
     
     # Step 2: Transform data. Filter only closing prices
-    data = data[['Close']]
-    data.columns = data.columns.get_level_values(1)
-    data.reset_index(inplace=True)  # Reset index to make 'Date' a column
-    
-    print(data)
-    print(data.columns)
+    df = df[['Close']]
+    df.columns = df.columns.get_level_values(1)
+    df.reset_index(inplace=True)  # Reset index to make 'Date' a column
 
     # Step 3: Store data in database
-    store_data(data)
+    print('Storing data:')
+    print(df)
+    store_data(df)
 
 
 if __name__ == "__main__":
